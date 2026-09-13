@@ -15,7 +15,7 @@ effect. No HomeLab service or public table endpoint is required.
 `POST /match` requires:
 
 ```text
-Authorization: Bearer <LINE_AGENT_SHARED_SECRET>
+Authorization: Bearer <LINE_AGENT_WORKER_SHARED_SECRET>
 Content-Type: application/json
 ```
 
@@ -34,8 +34,8 @@ deterministic handlers.
 After deployment, set the same random value in both places:
 
 ```text
-Cloudflare Worker secret: LINE_AGENT_SHARED_SECRET
-Vercel environment variable: LINE_AGENT_SHARED_SECRET
+Cloudflare Worker secret: LINE_AGENT_WORKER_SHARED_SECRET
+Vercel environment variable: LINE_AGENT_WORKER_SHARED_SECRET
 ```
 
 Vercel will also need `LINE_AGENT_WORKER_URL` once runtime integration is

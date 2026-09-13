@@ -1,7 +1,7 @@
 import { keyAgentsTable, matchLineInput } from "./matcher.js";
 
 function authorized(request, env) {
-  const secret = String(env.LINE_AGENT_SHARED_SECRET || "");
+  const secret = String(env.LINE_AGENT_WORKER_SHARED_SECRET || "");
   return Boolean(secret) && request.headers.get("authorization") === `Bearer ${secret}`;
 }
 
