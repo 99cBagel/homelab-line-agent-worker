@@ -1,8 +1,14 @@
 import { keyAgentsTable, matchLineInput } from "./matcher.js";
+import { loadKat, loadRolePrompt, updateConfig, CONFIG_KEYS } from "./config.js";
 
 function authorized(request, env) {
   const secret = String(env.LINE_AGENT_WORKER_SHARED_SECRET || "");
   return Boolean(secret) && request.headers.get("authorization") === `Bearer ${secret}`;
+}
+
+function administrator(request, env, actorId) {
+  const administrators = String(env.LINE_ADMIN_USER_IDS || "").split(",").map((id) => id.trim()).filter(Boolean);
+  return authorized(request, env) && Boolean(actorId) && administrators.includes(actorId);
 }
 
 function json(value, status = 200) {
@@ -13,7 +19,22 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/healthz") {
-      return json({ status: "ok", table: keyAgentsTable.table_name, version: keyAgentsTable.schema_version });
+      const kat = await loadKat(env);
+      return json({ status: "ok", table: kat.value.table_name || keyAgentsTable.table_name, version: kat.value.schema_version, source: kat.source });
+    }
+    if (request.method === "GET" && /^\/config\/(kat|role-prompt)$/.test(url.pathname)) {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      const kind = url.pathname.endsWith("kat") ? "kat" : "role_prompt";
+      const config = kind === "kat" ? await loadKat(env) : await loadRolePrompt(env);
+      return json({ kind, content: kind === "kat" ? JSON.stringify(config.value, null, 2) : config.value, source: config.source, version: config.version });
+    }
+    if (request.method === "POST" && /^\/config\/(kat|role-prompt)$/.test(url.pathname)) {
+      let body;
+      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+      if (!administrator(request, env, body?.actor_id)) return json({ error: "Forbidden" }, 403);
+      const kind = url.pathname.endsWith("kat") ? "kat" : "role_prompt";
+      try { return json(await updateConfig(env, kind, body.content, body.actor_id)); }
+      catch (error) { return json({ error: error.message }, 400); }
     }
     if (request.method !== "POST" || url.pathname !== "/match") return json({ error: "Not found" }, 404);
     if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
@@ -26,6 +47,7 @@ export default {
     if (typeof body?.message !== "string" || body.message.length > 2000) {
       return json({ error: "message must be a string up to 2000 characters" }, 400);
     }
-    return json(matchLineInput(body.message));
+    const kat = await loadKat(env);
+    return json({ ...matchLineInput(body.message, kat.value), table_source: kat.source, table_version: kat.version });
   }
 };

@@ -1,12 +1,17 @@
 # Line-Agent Worker
 
-`line-agent-worker` maps LINE text to an enabled entry in the bundled
-[`Key_Agents_Table.json`](./Key_Agents_Table.json). It does not execute actions,
-store LINE credentials, store MQTT credentials, or hold HomeLab secrets.
+`line-agent-worker` maps LINE text to an enabled entry in the Key Agents Table
+(KAT). It does not execute actions, store LINE credentials, store MQTT
+credentials, or hold HomeLab secrets.
 
-The JSON file is the canonical editable table for this Worker. Wrangler bundles
-it on each deployment, so table edits require a Worker deployment to take
-effect. No HomeLab service or public table endpoint is required.
+The bundled [`Key_Agents_Table.json`](./Key_Agents_Table.json) and
+[`Role_Prompt.md`](./Role_Prompt.md) are safe defaults. Production changes live
+in the dedicated `line-agent-config` R2 bucket, so KAT and Role Prompt edits
+take effect without a Worker deployment. The Worker keeps the bundled KAT if a
+stored version is malformed or R2 is unavailable.
+
+Do not bind the Document Bucket here. The LINE-facing Worker needs only the
+small configuration bucket, not access to uploaded documents.
 
 ## API
 
@@ -29,6 +34,21 @@ The Worker returns an Agent/action ID, or the root `agents` menu. Vercel must
 still validate IDs against its own local allow-list and execute only its
 deterministic handlers.
 
+## Runtime configuration API
+
+The following endpoints require `LINE_AGENT_WORKER_SHARED_SECRET` and are for
+the Vercel webhook only: `GET /config/kat`, `GET /config/role-prompt`,
+`POST /config/kat`, and `POST /config/role-prompt`.
+
+Updates require an `actor_id` listed in the Worker secret `LINE_ADMIN_USER_IDS`
+(comma-separated LINE user IDs). An update saves the previous live object under
+`config/revisions/` before replacing it. KAT updates are schema-checked and
+cannot alter Vercel's independent execution allow-list.
+
+The Vercel webhook exposes these controls only in a one-to-one LINE chat for an
+allowed administrator: send `Agent Admin`, then use its Flex menu; send
+`update role prompt: ...` or `update kat: {...}` to write a new version.
+
 ## Cloudflare setup
 
 After deployment, set the same random value in both places:
@@ -40,6 +60,16 @@ Vercel environment variable: LINE_AGENT_WORKER_SHARED_SECRET
 
 Vercel will also need `LINE_AGENT_WORKER_URL` once runtime integration is
 enabled. Do not put either value in this repository or in the JSON table.
+
+Create the configuration bucket once before deployment:
+
+```powershell
+npx wrangler r2 bucket create line-agent-config
+```
+
+Set `LINE_ADMIN_USER_IDS` to the same comma-separated administrator LINE user
+IDs in both Cloudflare Worker secrets and Vercel environment variables. The
+Worker binding is declared in `wrangler.jsonc` as `LINE_AGENT_CONFIG`.
 
 For local Wrangler development, enter the secret in the ignored `.env` file.
 This file is not deployed. Before a production deployment, run `wrangler secret

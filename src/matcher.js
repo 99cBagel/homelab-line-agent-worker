@@ -1,4 +1,4 @@
-import table from "../Key_Agents_Table.json" assert { type: "json" };
+import table from "../Key_Agents_Table.json" with { type: "json" };
 
 export const keyAgentsTable = table;
 
@@ -24,24 +24,24 @@ function result(agent, action, confidence, method) {
   };
 }
 
-export function matchLineInput(message) {
+export function matchLineInput(message, activeTable = table) {
   const text = normalizeText(message);
   if (!text) return { status: "menu", menu_id: "agents", confidence: 0, method: "empty" };
 
-  for (const agent of table.agents) {
+  for (const agent of activeTable.agents) {
     for (const action of enabledActions(agent)) {
       const aliases = [action.label, ...(action.aliases || [])].map(normalizeText);
       if (aliases.includes(text)) return result(agent, action, 1, "action_exact");
     }
   }
 
-  for (const agent of table.agents) {
+  for (const agent of activeTable.agents) {
     const aliases = [agent.label, ...(agent.aliases || [])].map(normalizeText);
     if (aliases.includes(text)) return result(agent, null, 0.98, "agent_exact");
   }
 
   const candidates = [];
-  for (const agent of table.agents) {
+  for (const agent of activeTable.agents) {
     for (const action of enabledActions(agent)) {
       for (const alias of [action.label, ...(action.aliases || [])].map(normalizeText)) {
         if (alias.length >= 4 && text.includes(alias)) candidates.push({ agent, action, alias });
