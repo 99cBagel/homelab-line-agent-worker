@@ -40,13 +40,13 @@ The following endpoints require `LINE_AGENT_WORKER_SHARED_SECRET` and are for
 the Vercel webhook only: `GET /config/kat`, `GET /config/role-prompt`,
 `POST /config/kat`, and `POST /config/role-prompt`.
 
-Updates require an `actor_id` listed in the Worker secret `LINE_ADMIN_USER_IDS`
-(comma-separated LINE user IDs). An update saves the previous live object under
-`config/revisions/` before replacing it. KAT updates are schema-checked and
-cannot alter Vercel's independent execution allow-list.
+Updates require the Vercel service secret and an `actor_id` for audit metadata.
+An update saves the previous live object under `config/revisions/` before
+replacing it. KAT updates are schema-checked and cannot alter Vercel's
+independent execution allow-list.
 
-The Vercel webhook exposes these controls only in a one-to-one LINE chat for an
-allowed administrator: send `Agent Admin`, then use its Flex menu; send
+The Vercel webhook exposes these controls only in a one-to-one LINE chat: send
+`Agent Admin`, then use its Flex menu; send
 `update role prompt: ...` or `update kat: {...}` to write a new version.
 
 ## Cloudflare setup
@@ -67,14 +67,9 @@ Create the configuration bucket once before deployment:
 npx wrangler r2 bucket create line-agent-config
 ```
 
-Set `LINE_ADMIN_USER_IDS` to the same comma-separated administrator LINE user
-IDs in both Cloudflare Worker secrets and Vercel environment variables. The
-Worker binding is declared in `wrangler.jsonc` as `LINE_AGENT_CONFIG`.
-
-For a private household account, `LINE_AGENT_ADMIN_OPEN=true` on both Vercel
-and the Worker bypasses the user-ID allow-list. It still blocks group chats,
-but every person who can directly message the Official Account can view and
-replace the KAT and Role Prompt.
+The Worker binding is declared in `wrangler.jsonc` as `LINE_AGENT_CONFIG`.
+Any person who can directly message the Official Account can view and replace
+KAT and Role Prompt; group chats remain blocked by Vercel.
 
 For local Wrangler development, enter the secret in the ignored `.env` file.
 This file is not deployed. Before a production deployment, run `wrangler secret

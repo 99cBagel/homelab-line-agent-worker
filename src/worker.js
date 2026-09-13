@@ -7,9 +7,9 @@ function authorized(request, env) {
 }
 
 function administrator(request, env, actorId) {
-  const administrators = String(env.LINE_ADMIN_USER_IDS || "").split(",").map((id) => id.trim()).filter(Boolean);
-  const openPrivateAdministration = String(env.LINE_AGENT_ADMIN_OPEN || "").toLowerCase() === "true";
-  return authorized(request, env) && Boolean(actorId) && (openPrivateAdministration || administrators.includes(actorId));
+  // Vercel admits only direct chats. The internal API still needs the shared
+  // service secret and a LINE actor ID for the R2 audit metadata.
+  return authorized(request, env) && Boolean(actorId);
 }
 
 function json(value, status = 200) {
