@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "table_name": "Key Agents Table",
+  "agents": [
+    {
+      "id": "homelab",
+      "label": "HomeLab",
+      "aliases": ["homelab", "home lab", "lenovo"],
+      "actions": [
+        { "id": "power-up-lenovo", "label": "Start Device", "aliases": ["start device", "power up lenovo", "power up homelab", "start homelab"], "enabled": true, "transport": "mqtt:lenovo/cmd/wol" },
+        { "id": "start-lenovo-mcps", "label": "Load MCPs", "aliases": ["load mcps", "start mcps", "start ocr", "load ocr"], "enabled": true, "endpoint": "https://lenovo.keeg.uk/homelab/mcps-start" },
+        { "id": "refresh-lenovo-mcps", "label": "MCPs State", "aliases": ["mcps state", "mcp status", "mcps status", "ocr status"], "enabled": true, "endpoint": "https://lenovo.keeg.uk/homelab/mcps-status" },
+        { "id": "shutdown-lenovo", "label": "Shutdown Device", "aliases": ["shutdown lenovo", "shutdown homelab", "shut down homelab"], "enabled": true, "confirmation_required": true, "endpoint": "https://lenovo.keeg.uk/homelab/shutdown" }
+      ]
+    },
+    {
+      "id": "ominder",
+      "label": "O'Minder",
+      "aliases": ["ominder", "o minder", "reminder", "reminders"],
+      "actions": [
+        { "id": "ominder-add", "label": "Add", "aliases": ["add reminder", "new reminder"], "enabled": true },
+        { "id": "ominder-events-screen", "label": "Display Text", "aliases": ["list reminders", "show reminders"], "enabled": true },
+        { "id": "ominder-events-audio", "label": "Jetson Audio", "aliases": ["play reminders", "reminder audio"], "enabled": true }
+      ]
+    },
+    {
+      "id": "spider",
+      "label": "Spider",
+      "aliases": ["spider", "stove spider"],
+      "actions": [
+        { "id": "power-up", "label": "Start Device", "aliases": ["power up spider", "start spider"], "enabled": true },
+        { "id": "shutdown", "label": "Shutdown Device", "aliases": ["shutdown spider", "shut down spider"], "enabled": true, "confirmation_required": true }
+      ]
+    },
+    {
+      "id": "docuagent",
+      "label": "DocuAgent",
+      "aliases": ["docuagent", "docu agent", "document", "documents"],
+      "actions": [
+        { "id": "document-add", "label": "Add", "aliases": ["add document", "upload document", "agent document"], "enabled": true },
+        { "id": "docuagent-display-text", "label": "Display Text", "aliases": ["show documents"], "enabled": false },
+        { "id": "docuagent-jetson-audio", "label": "Jetson Audio", "aliases": ["play documents"], "enabled": false }
+      ]
+    }
+  ]
+}
