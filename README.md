@@ -41,6 +41,10 @@ Vercel environment variable: LINE_AGENT_WORKER_SHARED_SECRET
 Vercel will also need `LINE_AGENT_WORKER_URL` once runtime integration is
 enabled. Do not put either value in this repository or in the JSON table.
 
+For local Wrangler development, enter the secret in the ignored `.env` file.
+This file is not deployed. Before a production deployment, run `wrangler secret
+put LINE_AGENT_WORKER_SHARED_SECRET` to store the same value in Cloudflare.
+
 ## Local checks
 
 ```powershell
