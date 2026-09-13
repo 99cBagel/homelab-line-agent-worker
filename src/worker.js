@@ -8,7 +8,8 @@ function authorized(request, env) {
 
 function administrator(request, env, actorId) {
   const administrators = String(env.LINE_ADMIN_USER_IDS || "").split(",").map((id) => id.trim()).filter(Boolean);
-  return authorized(request, env) && Boolean(actorId) && administrators.includes(actorId);
+  const openPrivateAdministration = String(env.LINE_AGENT_ADMIN_OPEN || "").toLowerCase() === "true";
+  return authorized(request, env) && Boolean(actorId) && (openPrivateAdministration || administrators.includes(actorId));
 }
 
 function json(value, status = 200) {
